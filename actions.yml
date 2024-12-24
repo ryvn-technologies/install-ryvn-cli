@@ -1,0 +1,31 @@
+name: "Install Ryvn CLI"
+description: "Install the Ryvn CLI tool in GitHub Actions workflows"
+author: "Ryvn Technologies"
+
+inputs:
+  install-dir:
+    description: "Directory to install the Ryvn CLI binary"
+    required: false
+    default: "/usr/local/bin"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run Ryvn CLI install script
+      shell: bash
+      run: |
+        curl -fsSL https://raw.githubusercontent.com/ryvn-technologies/ryvn-cli-release/main/install.sh | \
+        INSTALL_DIR="${{ inputs.install-dir }}" sudo -E bash
+
+        # Verify installation
+        if ! command -v ryvn &> /dev/null; then
+            echo "::error::Failed to install Ryvn CLI"
+            exit 1
+        fi
+
+        echo "Ryvn CLI installed successfully"
+        ryvn --version || true
+
+branding:
+  icon: "terminal"
+  color: "blue"
