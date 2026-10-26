@@ -1,0 +1,47 @@
+name: Test installation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install PyYAML==6.0.3
+      - run: python -m unittest discover -s tests -v
+
+  installation:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-26.04, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install an older pinned CLI
+        uses: ./
+        env:
+          RYVN_CLI_VERSION: v1.294.0
+      - name: Verify pinned version
+        shell: bash
+        run: ryvn --version | grep -F '1.294.0'
+      - name: Replace existing CLI with the default release
+        uses: ./
+      - name: Verify default installation
+        shell: bash
+        run: |
+          ryvn --version
+          if ryvn --version | grep -F '1.294.0'; then
+            echo '::error::The existing CLI was not replaced'
+            exit 1
+          fi
