@@ -13,16 +13,18 @@ runs:
   steps:
     - name: Run Ryvn CLI install script
       shell: bash
+      env:
+        INSTALL_DIR: ${{ inputs.install-dir }}
       run: |
         if [[ "$RUNNER_OS" == "Windows" ]]; then
           # Windows installation
-          mkdir -p "${{ inputs.install-dir }}"
+          mkdir -p "$INSTALL_DIR"
           curl -fsSL https://raw.githubusercontent.com/ryvn-technologies/ryvn-cli-release/main/install.sh | \
-          INSTALL_DIR="${{ inputs.install-dir }}" bash
+          bash
         else
           # Unix-like systems installation
           curl -fsSL https://raw.githubusercontent.com/ryvn-technologies/ryvn-cli-release/main/install.sh | \
-          INSTALL_DIR="${{ inputs.install-dir }}" sudo -E bash
+          sudo env INSTALL_DIR="$INSTALL_DIR" RYVN_CLI_VERSION="${RYVN_CLI_VERSION:-}" bash
         fi
 
         # Verify installation
